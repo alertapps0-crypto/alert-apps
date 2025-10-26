@@ -47,11 +47,23 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
             .toList()
         : (recIdsRaw is List ? List<String>.from(recIdsRaw) : <String>[]);
 
+    // Ensure we always have a notificationId that we can attach to the
+    // displayed notification. Prefer an explicit data['notificationId'] if
+    // present, otherwise fallback to messageId or a generated timestamp.
+    final String notifId = message.data['notificationId'] ??
+        message.messageId ??
+        DateTime.now().millisecondsSinceEpoch.toString();
+
     final notification = Notifikasi(
-      id: message.messageId ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      id: notifId,
       senderId: message.data['senderId'] ?? '',
       recipientIds: recIds,
-      message: message.notification?.body ?? message.data['message'] ?? '',
+      // Prefer any explicit data fields, then notification payload, then a
+      // safe default.
+      message: message.data['message'] ??
+          message.data['body'] ??
+          message.notification?.body ??
+          '',
       timestamp: message.sentTime ?? DateTime.now(),
       senderName:
           message.data['senderName'] ?? message.data['teacherName'] ?? '',
@@ -63,16 +75,37 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         .doc(notification.id)
         .set(notification.toMap());
 
-    final title =
-        message.data['title'] ?? message.notification?.title ?? 'SOS Darurat';
-    final body = message.data['message'] ??
-        message.data['body'] ??
-        message.notification?.body ??
+    // Resolve title/body with a wide set of fallbacks so the created
+    // notification always has readable content.
+    final String title = (message.data['title'] as String?) ??
+        (message.notification?.title) ??
+        'SOS Darurat';
+
+    final String body = (message.data['message'] as String?) ??
+        (message.data['body'] as String?) ??
+        (message.notification?.body) ??
         'Permintaan bantuan masuk.';
+
+    // If the system already produced a notification (message.notification !=
+    // null) there is a chance the platform will show a second notification
+    // (system + our local). To reduce duplicates we attempt to dismiss any
+    // existing local notifications before creating ours. Note: this cannot
+    // reliably cancel system notifications produced by FCM, so the ideal
+    // fix is to send DATA-only messages from the server. This change makes
+    // the background handling safer and ensures the created notification
+    // always includes a notificationId, title and body.
+    try {
+      await AwesomeNotifications().dismissAllNotifications();
+    } catch (e) {
+      debugPrint('Error dismissing existing notifications: $e');
+    }
+
+    // Use a 32-bit-safe int id for AwesomeNotifications
+    final int awId = notification.id.hashCode & 0x7fffffff;
 
     await AwesomeNotifications().createNotification(
       content: NotificationContent(
-        id: notification.id.hashCode,
+        id: awId,
         channelKey: 'emergency_channel',
         title: title,
         body: body,
