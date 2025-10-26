@@ -1,0 +1,28 @@
+{
+  "functions": {
+    "source": "functions",
+    "predeploy": [
+      "npm --prefix \"$RESOURCE_DIR\" run build"
+    ]
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "alert-apps",
+          "appId": "1:673178018451:android:a6934b0b4e0896c2c2a366",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "alert-apps",
+          "configurations": {
+            "android": "1:673178018451:android:a6934b0b4e0896c2c2a366",
+            "ios": "1:673178018451:ios:a068e059e573b81ec2a366"
+          }
+        }
+      }
+    }
+  }
+}

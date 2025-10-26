@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "673178018451",
+    "project_id": "alert-apps",
+    "storage_bucket": "alert-apps.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:673178018451:android:72812d5869088b9dc2a366",
+        "android_client_info": {
+          "package_name": "com.example.alert_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSG-t2WymADv2PwgULuopUqeakg95XqBM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:673178018451:android:a6934b0b4e0896c2c2a366",
+        "android_client_info": {
+          "package_name": "com.example.wireless_calling_system"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSG-t2WymADv2PwgULuopUqeakg95XqBM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
