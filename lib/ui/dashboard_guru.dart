@@ -24,6 +24,10 @@ class DashboardGuru extends StatefulWidget {
 }
 
 class _DashboardGuruState extends State<DashboardGuru> {
+  // Search controller and query state
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
   Future<String?> _showSendNotificationDialog() async {
     final TextEditingController messageController = TextEditingController();
     final GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -46,7 +50,7 @@ class _DashboardGuruState extends State<DashboardGuru> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Mengirim ke ${selectedParentIds.length} orang tua',
+                  'Mengirim ke ${selectedParentIds.length} penerima',
                   style: TextStyle(
                     color: Colors.grey[600],
                     fontSize: 14,
@@ -104,6 +108,12 @@ class _DashboardGuruState extends State<DashboardGuru> {
 
   List<String> selectedParentIds = [];
   bool isLoading = false;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -209,6 +219,7 @@ class _DashboardGuruState extends State<DashboardGuru> {
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.9,
                 child: TextField(
+                  controller: _searchController,
                   style: TextStyle(
                     fontSize: 18,
                   ),
@@ -217,6 +228,17 @@ class _DashboardGuruState extends State<DashboardGuru> {
                       Icons.search,
                       color: Colors.grey[700],
                     ),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: Icon(Icons.clear),
+                            onPressed: () {
+                              setState(() {
+                                _searchController.clear();
+                                _searchQuery = '';
+                              });
+                            },
+                          )
+                        : null,
                     labelStyle: TextStyle(
                       fontSize: 18,
                     ),
@@ -231,103 +253,245 @@ class _DashboardGuruState extends State<DashboardGuru> {
                         Radius.circular(15),
                       ),
                     ),
-                    hintText: "Cari Nama/Kelas",
+                    hintText: "Cari Nama",
                     hintStyle: TextStyle(
                       fontSize: 18,
                       color: Colors.grey[700],
                     ),
                   ),
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value.trim();
+                    });
+                  },
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.only(
+                left: 16.0,
+              ),
               child: Text(
-                'Selected Parents: ${selectedParentIds.length}',
+                'Pengguna yang dipilih: ${selectedParentIds.length}',
                 style: TextStyle(
                   color: Colors.grey[600],
-                  fontSize: 18,
+                  fontSize: 16,
                 ),
               ),
             ),
+            Padding(
+              padding: EdgeInsets.only(
+                left: 16.0,
+                right: 16.0,
+                bottom: 16.0,
+              ),
+              child: Text(
+                "Orang Tua",
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+            ),
             Expanded(
-              child: StreamBuilder(
-                  stream: FirebaseFirestore.instance
-                      .collection('users')
-                      .where('role', isEqualTo: 'parent')
-                      .snapshots(),
-                  builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                    if (snapshot.hasError) {
-                      return Center(
-                        child: Text(
-                          'Error: ${snapshot.error}',
-                          overflow: TextOverflow.visible,
-                          softWrap: true,
-                          style: TextStyle(
-                            color: Colors.red,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      );
-                    }
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // List: Parents
+                      StreamBuilder(
+                        stream: FirebaseFirestore.instance
+                            .collection('users')
+                            .where('role', isEqualTo: 'parent')
+                            .snapshots(),
+                        builder:
+                            (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                          if (snapshot.hasError) {
+                            return Center(
+                              child: Text(
+                                'Error: ${snapshot.error}',
+                                overflow: TextOverflow.visible,
+                                softWrap: true,
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            );
+                          }
 
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircularProgressIndicator();
-                    }
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
 
-                    // Sort the documents by name
-                    final sortedDocs = snapshot.data!.docs.toList()
-                      ..sort((a, b) =>
-                          (a['name'] as String).compareTo(b['name'] as String));
+                          final sortedDocs = snapshot.data!.docs.toList()
+                            ..sort((a, b) => (a['name'] as String)
+                                .compareTo(b['name'] as String));
 
-                    return Container(
-                      width: MediaQuery.of(context).size.width * 0.96,
-                      child: ListView.builder(
-                        itemCount: sortedDocs.length,
-                        itemBuilder: (context, index) {
-                          final parent = sortedDocs[index];
+                          final filteredDocs = _searchQuery.isEmpty
+                              ? sortedDocs
+                              : sortedDocs
+                                  .where((doc) => (doc['name'] ?? '')
+                                      .toString()
+                                      .toLowerCase()
+                                      .contains(_searchQuery.toLowerCase()))
+                                  .toList();
+
                           return Column(
                             children: [
-                              CheckboxListTile(
-                                secondary: CircleAvatar(
-                                  radius: 30,
-                                  backgroundColor: Color(0xff007AFF),
-                                  child: Text(
-                                    parent['name'].toString().isNotEmpty
-                                        ? parent['name'][0].toUpperCase()
-                                        : '?',
-                                    style: TextStyle(
-                                      color: Color(0xfffefefe),
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 24,
-                                    ),
-                                  ),
-                                ),
-                                title: Text(
-                                  parent['name'],
-                                  style:
-                                      Theme.of(context).textTheme.labelMedium,
-                                ),
-                                value: selectedParentIds.contains(parent.id),
-                                onChanged: (bool? value) {
-                                  setState(() {
-                                    if (value == true) {
-                                      selectedParentIds.add(parent.id);
-                                    } else {
-                                      selectedParentIds.remove(parent.id);
-                                    }
-                                  });
-                                },
-                              ),
-                              SizedBox(height: 10),
-                              Divider(),
+                              ...filteredDocs.map((parent) => Column(
+                                    children: [
+                                      CheckboxListTile(
+                                        secondary: CircleAvatar(
+                                          radius: 30,
+                                          backgroundColor: Color(0xff007AFF),
+                                          child: Text(
+                                            parent['name'].toString().isNotEmpty
+                                                ? parent['name'][0]
+                                                    .toUpperCase()
+                                                : '?',
+                                            style: TextStyle(
+                                              color: Color(0xfffefefe),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 24,
+                                            ),
+                                          ),
+                                        ),
+                                        title: Text(
+                                          parent['name'],
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelMedium,
+                                        ),
+                                        value: selectedParentIds
+                                            .contains(parent.id),
+                                        onChanged: (bool? value) {
+                                          setState(() {
+                                            if (value == true) {
+                                              selectedParentIds.add(parent.id);
+                                            } else {
+                                              selectedParentIds
+                                                  .remove(parent.id);
+                                            }
+                                          });
+                                        },
+                                      ),
+                                      const SizedBox(height: 10),
+                                      const Divider(),
+                                    ],
+                                  )),
                             ],
                           );
                         },
                       ),
-                    );
-                  }),
+
+                      // Section header: Security
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          left: 8.0,
+                          right: 8.0,
+                          top: 8.0,
+                          bottom: 8.0,
+                        ),
+                        child: Text(
+                          "Security",
+                          style: Theme.of(context).textTheme.headlineMedium,
+                        ),
+                      ),
+
+                      // List: Security
+                      StreamBuilder(
+                        stream: FirebaseFirestore.instance
+                            .collection('users')
+                            .where('role', isEqualTo: 'security')
+                            .snapshots(),
+                        builder:
+                            (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                          if (snapshot.hasError) {
+                            return Center(
+                              child: Text(
+                                'Error: ${snapshot.error}',
+                                overflow: TextOverflow.visible,
+                                softWrap: true,
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            );
+                          }
+
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+
+                          final sortedDocs = snapshot.data!.docs.toList()
+                            ..sort((a, b) => (a['name'] as String)
+                                .compareTo(b['name'] as String));
+
+                          final filteredDocs = _searchQuery.isEmpty
+                              ? sortedDocs
+                              : sortedDocs
+                                  .where((doc) => (doc['name'] ?? '')
+                                      .toString()
+                                      .toLowerCase()
+                                      .contains(_searchQuery.toLowerCase()))
+                                  .toList();
+
+                          return Column(
+                            children: [
+                              ...filteredDocs.map((user) => Column(
+                                    children: [
+                                      CheckboxListTile(
+                                        secondary: CircleAvatar(
+                                          radius: 30,
+                                          backgroundColor: Color(0xff007AFF),
+                                          child: Text(
+                                            user['name'].toString().isNotEmpty
+                                                ? user['name'][0].toUpperCase()
+                                                : '?',
+                                            style: TextStyle(
+                                              color: Color(0xfffefefe),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 24,
+                                            ),
+                                          ),
+                                        ),
+                                        title: Text(
+                                          user['name'],
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelMedium,
+                                        ),
+                                        value:
+                                            selectedParentIds.contains(user.id),
+                                        onChanged: (bool? value) {
+                                          setState(() {
+                                            if (value == true) {
+                                              selectedParentIds.add(user.id);
+                                            } else {
+                                              selectedParentIds.remove(user.id);
+                                            }
+                                          });
+                                        },
+                                      ),
+                                      const SizedBox(height: 10),
+                                      const Divider(),
+                                    ],
+                                  )),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -341,7 +505,7 @@ class _DashboardGuruState extends State<DashboardGuru> {
                   if (selectedParentIds.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Please select at least one parent'),
+                        content: Text('Please select at least one recipient'),
                         backgroundColor: Colors.red,
                       ),
                     );

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:wireless_calling_system/ui/login_security.dart';
 import 'firebase_options.dart';
 import 'models/notifikasi.dart';
 import 'services/firebase_messaging_handler.dart';
@@ -20,6 +21,8 @@ import 'ui/confirm_sos.dart';
 import 'ui/dashboard_guru.dart';
 import 'ui/dashboard_ortu.dart';
 import 'ui/detail_sos.dart';
+import 'ui/sign_up_guru.dart';
+import 'ui/sign_up_security.dart';
 import 'ui/sos_notif.dart';
 import 'ui/login_guru.dart';
 import 'ui/login_ortu.dart';
@@ -282,6 +285,7 @@ class MainApp extends StatelessWidget {
         routes: {
           "/roleselect": (context) => const RoleSelect(),
           "/loginguru": (context) => const LoginGuru(),
+          "/loginsecurity": (context) => const LoginSecurity(),
           "/loginortu": (context) => const LoginOrtu(),
           '/detailsos': (context) {
             final args = ModalRoute.of(context)!.settings.arguments as String;
@@ -294,6 +298,8 @@ class MainApp extends StatelessWidget {
           },
           "/confirmsos": (context) => const ConfirmSos(),
           "/signuportu": (context) => const SignUpOrtu(),
+          "/signupguru": (context) => const SignUpGuru(),
+          "/signupsecurity": (context) => const SignUpSecurity(),
         },
         home: Consumer<User?>(
           builder: (context, user, child) {

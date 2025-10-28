@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:wireless_calling_system/ui/dashboard_ortu.dart';
 
 import '../services/auth_service.dart';
-import 'dashboard_guru.dart';
 
-class LoginGuru extends StatefulWidget {
-  const LoginGuru({super.key});
+class LoginSecurity extends StatefulWidget {
+  const LoginSecurity({super.key});
 
   @override
-  State<LoginGuru> createState() => _LoginGuruState();
+  State<LoginSecurity> createState() => _LoginSecurityState();
 }
 
-class _LoginGuruState extends State<LoginGuru> {
+class _LoginSecurityState extends State<LoginSecurity> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -38,15 +38,14 @@ class _LoginGuruState extends State<LoginGuru> {
 
         if (mounted) {
           // Navigate based on role
-          if (user.role == 'teacher') {
+          if (user.role == 'security') {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => DashboardGuru(
-                  teacherId: user.uid,
-                  teacherName: user.name,
-                  teacherEmail: user.email,
-                  teacherPhone: user.phoneNumber,
+                builder: (context) => DashboardOrtu(
+                  parentId: user.uid,
+                  parentName: user.name,
+                  parentEmail: user.email,
                 ),
               ),
             );
@@ -84,7 +83,7 @@ class _LoginGuruState extends State<LoginGuru> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "Login Guru",
+                    "Login Security",
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
                   SizedBox(
@@ -230,7 +229,7 @@ class _LoginGuruState extends State<LoginGuru> {
             right: 0,
             child: GestureDetector(
               onTap: () {
-                Navigator.pushNamed(context, "/signupguru");
+                Navigator.pushNamed(context, "/signupsecurity");
               },
               child: Text(
                 "Belum punya akun? Daftar Disini",

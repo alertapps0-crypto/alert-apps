@@ -49,6 +49,76 @@ class AuthService {
     }
   }
 
+  Future<UserModel> registerGuru({
+    required String email,
+    required String password,
+    required String name,
+    required String phoneNumber,
+  }) async {
+    try {
+      // Create user in Firebase Auth
+      final UserCredential result = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final User? user = result.user;
+      if (user == null) throw Exception('Registration failed');
+
+      // Create user model
+      final UserModel userModel = UserModel(
+        uid: user.uid,
+        email: email,
+        name: name,
+        phoneNumber: phoneNumber,
+        role: 'teacher',
+        fcmToken: null,
+      );
+
+      // Save user data to Firestore
+      await _firestore.collection('users').doc(user.uid).set(userModel.toMap());
+
+      return userModel;
+    } catch (e) {
+      throw Exception('Registration failed: $e');
+    }
+  }
+
+  Future<UserModel> registerSecurity({
+    required String email,
+    required String password,
+    required String name,
+    required String phoneNumber,
+  }) async {
+    try {
+      // Create user in Firebase Auth
+      final UserCredential result = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final User? user = result.user;
+      if (user == null) throw Exception('Registration failed');
+
+      // Create user model
+      final UserModel userModel = UserModel(
+        uid: user.uid,
+        email: email,
+        name: name,
+        phoneNumber: phoneNumber,
+        role: 'security',
+        fcmToken: null,
+      );
+
+      // Save user data to Firestore
+      await _firestore.collection('users').doc(user.uid).set(userModel.toMap());
+
+      return userModel;
+    } catch (e) {
+      throw Exception('Registration failed: $e');
+    }
+  }
+
   // Login with email & password
   Future<UserModel> loginWithEmailPassword({
     required String email,
