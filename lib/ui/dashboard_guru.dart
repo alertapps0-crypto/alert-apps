@@ -62,7 +62,7 @@ class _DashboardGuruState extends State<DashboardGuru> {
                     Navigator.of(context).pop("Anak mengalami tantrum");
                   },
                   child: Container(
-                    height: 40,
+                    height: 60,
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey),
                       borderRadius: BorderRadius.circular(12),
@@ -144,7 +144,7 @@ class _DashboardGuruState extends State<DashboardGuru> {
                     Navigator.of(context).pop("Jam sekolah selesai");
                   },
                   child: Container(
-                    height: 40,
+                    height: 60,
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey),
                       borderRadius: BorderRadius.circular(12),
@@ -177,7 +177,7 @@ class _DashboardGuruState extends State<DashboardGuru> {
                     Navigator.of(context).pop("Periksa suhu tubuh");
                   },
                   child: Container(
-                    height: 40,
+                    height: 60,
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey),
                       borderRadius: BorderRadius.circular(12),
