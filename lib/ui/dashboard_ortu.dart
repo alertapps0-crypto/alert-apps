@@ -1,6 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../providers/notification_state.dart';
+import 'detail_sos.dart';
 import 'riwayat_pesan.dart';
 import 'role_select.dart';
 
@@ -126,24 +129,143 @@ class _DashboardOrtuState extends State<DashboardOrtu> {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(18),
-                child: SizedBox(
-                  width: 300,
-                  child: Text(
-                    "Selamat Datang, Bapak/Ibu ${widget.parentName}",
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: SizedBox(
+                child: Text(
+                  "Selamat Datang, Bapak/Ibu ${widget.parentName}",
+                  style: Theme.of(context).textTheme.headlineMedium,
                 ),
               ),
-            ],
-          ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 10.0, right: 10.0),
+              child: Divider(
+                color: Colors.grey,
+                thickness: 1,
+              ),
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 10.0),
+                  child: Text(
+                    "Pesan Terbaru",
+                    style: TextStyle(
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+                Spacer(),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RiwayatPesan(
+                          userId: widget.parentId,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 10.0),
+                    child: Text(
+                      "See All",
+                      style: TextStyle(
+                        fontStyle: FontStyle.italic,
+                        color: Colors.blue,
+                        fontSize: 17,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Consumer<NotificationState>(
+              builder: (context, notificationState, _) {
+                if (notificationState.isLoading) {
+                  return const Expanded(
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+
+                if (notificationState.error != null) {
+                  return Expanded(
+                    child: Center(
+                      child: Text('Error: ${notificationState.error}'),
+                    ),
+                  );
+                }
+
+                final notifications = notificationState.notifications;
+
+                return Expanded(
+                  child: ListView.builder(
+                    itemCount: 5,
+                    itemBuilder: (context, index) {
+                      final notification = notifications[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        child: ListTile(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => DetailSos(
+                                  notificationId: notification.id,
+                                ),
+                              ),
+                            );
+                          },
+                          title: Text(
+                            'Pengirim: ${notification.senderName}',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 8),
+                              Text(
+                                'Pesan: ${notification.message}',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Waktu Terkirim: ${_formatDateTime(notification.timestamp)}',
+                                style: TextStyle(
+                                  color: Colors.grey[700],
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  String _formatDateTime(DateTime dateTime) {
+    String pad(int n) => n.toString().padLeft(2, '0');
+    return '${pad(dateTime.day)}/${pad(dateTime.month)}/${dateTime.year} ${pad(dateTime.hour)}:${pad(dateTime.minute)}';
   }
 }
