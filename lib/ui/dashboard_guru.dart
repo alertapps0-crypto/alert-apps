@@ -68,23 +68,30 @@ class _DashboardGuruState extends State<DashboardGuru> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10.0),
                           child: Icon(
                             Icons.warning,
                             size: 30,
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                          child: Text(
-                            "Anak mengalami tantrum",
-                            style: TextStyle(
-                              fontSize: 16,
+                        Expanded(
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 10.0),
+                            child: Text(
+                              "Anak mengalami tantrum",
+                              style: TextStyle(
+                                fontSize: 16,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
                             ),
                           ),
-                        )
+                        ),
                       ],
                     ),
                   ),
